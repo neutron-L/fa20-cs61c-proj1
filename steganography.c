@@ -72,13 +72,14 @@ int main(int argc, char **argv)
 	//YOUR CODE HERE
 	if (argc != 2)
 	{
-		fprintf(stderr, "Usage: ./main <filename>\n");
+		fprintf(stderr, "Usage: ./steganography <filename>\n");
 		exit(-1);
 	}
 	Image * image = readData(argv[1]);
 
 	if (image == NULL) // filename is not exist or some error
 	{
+		fprintf(stderr, "read data error\n");
 		exit(-1);
 	}
 	Image *res = steganography(image);

@@ -23,6 +23,23 @@
 Color *evaluateOneCell(Image *image, int row, int col, uint32_t rule)
 {
 	//YOUR CODE HERE
+	Color * res = (Color *)malloc(sizeof(Color));
+	unsigned int count = 0;
+
+	// count the alive neighbors
+	for (int i = -1; i <= 1; ++i)
+		for (int j = -1; j <= 1; ++j)
+			if (!(i == 0 && j == 0) && 
+			image->image[(row + i + image->rows) % image->rows][(col + j + image->cols) % image->cols].B & 1)
+				++count;
+
+	if (image->image[row][col].B & 1)
+		count += 9;
+	if ((1<<count) & rule) 
+		res->R = res->G = res->B = 255;
+	else
+		res->R = res->G = res->B = 0;
+	return res;
 }
 
 //The main body of Life; given an image and a rule, computes one iteration of the Game of Life.
@@ -30,6 +47,23 @@ Color *evaluateOneCell(Image *image, int row, int col, uint32_t rule)
 Image *life(Image *image, uint32_t rule)
 {
 	//YOUR CODE HERE
+	Image * res = (Image *)malloc(sizeof(Image));
+	res->rows = image->rows;
+	res->cols = image->cols;
+	res->image = (Color **)malloc(res->rows * sizeof(Color *));
+
+	for (unsigned int i = 0; i < image->rows; ++i)
+	{
+		res->image[i] = (Color *)malloc(res->cols * sizeof(Color));
+		for (unsigned int j = 0; j < image->cols; ++j)
+		{
+			Color * pixel = evaluateOneCell(image, i, j, rule);
+			res->image[i][j] = *pixel;
+			free(pixel);
+		}
+	}
+
+	return res;
 }
 
 /*
@@ -50,4 +84,24 @@ You may find it useful to copy the code from steganography.c, to start.
 int main(int argc, char **argv)
 {
 	//YOUR CODE HERE
+	if (argc != 3)
+	{
+		fprintf(stderr, "usage: ./gameOfLife filename rule\n");
+		fprintf(stderr, "filename is an ASCII PPM file (type P3) with maximum value 255.\n");
+		fprintf(stderr, "rule is a hex number beginning with 0x; Life is 0x1808.\n");
+		exit(-1);
+	}
+	uint32_t rule = strtol(argv[2], NULL, 16);
+	Image *image = readData(argv[1]);
+	if (image == NULL)
+	{
+		fprintf(stderr, "read data error\n");
+		exit(-1);
+	}
+	Image * res = life(image, rule);	
+	writeData(res);
+	freeImage(image);
+	freeImage(res);
+
+	return 0;
 }
